@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: cabinetmed
+      POSTGRES_USER: ${POSTGRES_USER:-quarkus_test}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quarkus_test}
+      PGDATA: /data/postgres
+    volumes:
+       - postgres:/data/postgres
+    ports:
+    - 5432:5432
+
+  backend-service:
+    image: georgiods75/cabinetmedical:1.0.0-SNAPSHOT
+    container_name: cabinetmed-backend
+    ports:
+     - "8080:8080"
+    environment:
+      quarkus.datasource.jdbc.url: jdbc:postgresql://postgres/cabinetmed
+    depends_on:
+           - "postgres"
+    
+
+  authent-service:
+    image: georgiods75/authent:1.0.0-SNAPSHOT
+    container_name: authent-service
+    ports:
+    - "9000:8080"
+
+  frontend:
+       container_name: cabinetmed-front
+       image: georgiods75/cabinetmed-front:1.0
+       ports:
+           - "80:80"
+           - "443:443"
+       links:
+           - "backend-service"
+           - "authent-service"
+       depends_on:
+           - "backend-service"
+volumes:
+  postgres:
